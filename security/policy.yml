@@ -1,0 +1,114 @@
+version: 1
+
+policies:
+  secrets:
+    block: any
+    warn: none
+
+  sast:
+    block: [ERROR]
+    warn: [WARNING]
+    log: [INFO]
+
+  sca:
+    block: [CRITICAL, HIGH]
+    warn: [MEDIUM]
+    log: [LOW, UNKNOWN]
+
+  iac:
+    block: [CRITICAL]
+    warn: [HIGH, MEDIUM]
+    log: [LOW]
+
+  dast:
+    block: [High]
+    warn: [Medium]
+    log: [Low, Informational]
+
+suppressions:
+  - id: "app/services/web/certs/server.key:private-key:1"
+    tool: "gitleaks"
+    reason: >
+      Self-signed TLS private key for local development only. Verified via
+      openssl x509: Issuer and Subject are identical (self-signed),
+      certificate uses OpenSSL default placeholder org fields
+      (CompanyName/StateName/CityName), 10-year validity (2025-2035)
+      consistent with a generated dev default rather than a CA-issued
+      production cert. Traced to app/services/gencert.sh, which generates
+      this key/cert pair once and copies it into web, chatbot, community,
+      workshop, and identity via `cp certs/* <service>/certs`. Not
+      internet-facing; protects only local traffic to localhost:8443.
+    owner: "Gabicle"
+    expires: "2027-08-18"
+
+  - id: "app/services/chatbot/certs/server.key:private-key:1"
+    tool: "gitleaks"
+    reason: >
+      Identical key/cert pair as app/services/web/certs/server.key,
+      copied by app/services/gencert.sh (`cp certs/* chatbot/certs`).
+      Same verification applies: self-signed, placeholder org fields,
+      10-year validity, not internet-facing.
+    owner: "Gabicle"
+    expires: "2027-08-18"
+
+  - id: "app/services/community/certs/server.key:private-key:1"
+    tool: "gitleaks"
+    reason: >
+      Identical key/cert pair as app/services/web/certs/server.key,
+      copied by app/services/gencert.sh (`cp certs/* community/certs`).
+      Same verification applies: self-signed, placeholder org fields,
+      10-year validity, not internet-facing.
+    owner: "Gabicle"
+    expires: "2027-08-18"
+
+  - id: "app/services/workshop/certs/server.key:private-key:1"
+    tool: "gitleaks"
+    reason: >
+      Identical key/cert pair as app/services/web/certs/server.key,
+      copied by app/services/gencert.sh (`cp certs/* workshop/certs`).
+      Same verification applies: self-signed, placeholder org fields,
+      10-year validity, not internet-facing.
+    owner: "Gabicle"
+    expires: "2027-08-18"
+
+  - id: "app/services/identity/src/main/resources/certs/server.key:private-key:1"
+    tool: "gitleaks"
+    reason: >
+      Identical key/cert pair as app/services/web/certs/server.key,
+      copied by app/services/gencert.sh
+      (`cp certs/* identity/src/main/resources/certs`). Same
+      verification applies: self-signed, placeholder org fields,
+      10-year validity, not internet-facing.
+    owner: "Gabicle"
+    expires: "2027-08-18"
+
+  - id: "app/services/identity/src/main/resources/certs/server.p12:pkcs12-file:0"
+    tool: "gitleaks"
+    reason: >
+      Not independently generated key material. keystore.sh repackages
+      the already-verified self-signed server.key/server.crt pair (see
+      identity/.../server.key suppression above) into PKCS12 format via
+      `openssl pkcs12 -export`, then into a Java keystore via keytool.
+      Same underlying secret, different container format only.
+    owner: "Gabicle"
+    expires: "2027-08-18"
+
+  - id: "app/services/gateway-service/server.key:private-key:1"
+    tool: "gitleaks"
+    reason: >
+      Independently verified via openssl x509: Issuer and Subject
+      identical (self-signed), placeholder org fields, 10-year validity
+      (2024-2034). CN = api.mypremiumdealership.com, crAPI's internal
+      fictional demo domain, not a real registered/internet-facing
+      domain. Generated via the same gencert.sh script, called
+      separately with this CN as its argument (this path falls outside
+      gencert.sh's cp list, so it was not simply copied like the other
+      five services). Not internet-facing.
+    owner: "Gabicle"
+    expires: "2027-08-18"
+
+# NOTE: The 4 JWT findings in app/postman_collections/crAPI.postman_collection.json
+# (fingerprints jwt:1197, jwt:1841, jwt:2023, jwt:2128) are intentionally NOT
+# suppressed here. They are a different finding type (example bearer tokens in
+# a Postman collection, not TLS key material) and have not yet been triaged.
+# They remain blocking under the `secrets: block: any` policy until reviewed.
