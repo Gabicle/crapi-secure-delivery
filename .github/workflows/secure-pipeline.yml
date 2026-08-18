@@ -1,0 +1,49 @@
+name: Secure Delivery Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "secrets stage placeholder"
+
+  sast:
+    runs-on: ubuntu-latest
+    needs: secrets
+    steps:
+      - run: echo "sast stage placeholder"
+
+  sca:
+    runs-on: ubuntu-latest
+    needs: sast
+    steps:
+      - run: echo "sca stage placeholder"
+
+  iac:
+    runs-on: ubuntu-latest
+    needs: sca
+    steps:
+      - run: echo "iac stage placeholder"
+
+  build:
+    runs-on: ubuntu-latest
+    needs: iac
+    steps:
+      - run: echo "build stage placeholder"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - run: echo "deploy stage placeholder"
+
+  dast:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - run: echo "dast stage placeholder"
