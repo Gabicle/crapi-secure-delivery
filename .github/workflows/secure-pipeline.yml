@@ -26,7 +26,7 @@ jobs:
 
       - name: Run Gitleaks (current-state scan)
         run: |
-          gitleaks dir -s app --report-format json --report-path gitleaks-report.json
+          gitleaks dir app --report-format json --report-path gitleaks-report.json
 
       - name: Upload Gitleaks report
         if: always()
