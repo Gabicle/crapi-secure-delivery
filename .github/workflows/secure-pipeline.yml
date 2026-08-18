@@ -10,14 +10,30 @@ jobs:
   secrets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository and submodule
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
-      - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v3
+
+      - name: Install Gitleaks (pinned)
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: "8.30.1"
+        run: |
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o gitleaks.tar.gz
+          tar -xzf gitleaks.tar.gz gitleaks
+          sudo mv gitleaks /usr/local/bin/
+
+      - name: Run Gitleaks (current-state scan)
+        run: |
+          gitleaks dir -s app --report-format json --report-path gitleaks-report.json
+
+      - name: Upload Gitleaks report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
 
   sast:
     runs-on: ubuntu-latest
