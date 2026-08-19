@@ -156,15 +156,16 @@ jobs:
 
       - name: Bring up crAPI stack (build/deploy)
         run: |
-          docker compose -f app/deploy/docker/docker-compose.yml up -d --wait
+          docker compose -p crapi -f app/deploy/docker/docker-compose.yml up -d --wait
 
       - name: Run ZAP baseline scan (DAST)
         run: |
           mkdir -p reports
-          docker run --rm --add-host=host.docker.internal:host-gateway \
+          chmod -R 777 reports
+          docker run --rm --network crapi_default \
             -v "${{ github.workspace }}/reports:/zap/wrk" \
             zaproxy/zap-stable:latest zap-baseline.py \
-            -t https://host.docker.internal:8443 \
+            -t https://crapi-web:443 \
             -J zap-report.json -I
 
       - name: Check findings against policy
@@ -182,4 +183,4 @@ jobs:
       - name: Tear down stack
         if: always()
         run: |
-          docker compose -f app/deploy/docker/docker-compose.yml down
+          docker compose -p crapi -f app/deploy/docker/docker-compose.yml down
