@@ -28,3 +28,26 @@ verified. Each one that's confirmed becomes its own `research/FIND-XXX.md`
   (see `security/policy.yml` cert suppressions) — worth confirming
   whether this is dev-only convenience or a broader pattern that would
   also disable validation against real external services.
+
+## SCA (Trivy) — Vendored Dependency Findings
+
+115 findings (7 Critical, 108 High) in `app/`'s pinned dependency tree,
+scoped out of the `sca` gate (`ignore_paths` in `security/policy.yml`) —
+gating on pre-existing findings in a vendored, pinned target is the
+"blocking on legacy debt" anti-pattern real SCA gates avoid.
+
+Root cause and fix path were identified for the 5 Critical findings
+(remediation is a version bump, not a logic fix, since these are
+dependency CVEs rather than app code flaws). Bumps were deliberately
+**not applied** to the submodule — the goal of this project is
+demonstrating detection, triage, and gating discipline, not maintaining
+a patched fork of crAPI. Documented here as a completed triage decision:
+
+- [ ] `fastmcp` (SSRF via path traversal) — fix path identified, not applied
+- [ ] `langchain-core` (RCE via serialization) — fix path identified, not applied
+- [ ] `unstructured` (path traversal → arbitrary file write) — fix path identified, not applied
+- [ ] `shell-quote` (RCE via command injection) — fix path identified, not applied
+- [ ] `websocket-driver` (DoS) — fix path identified, not applied
+
+Remaining 108 High findings (mostly Go/npm transitive dependencies,
+largely DoS-class) are tracked as known debt, not individually triaged.
