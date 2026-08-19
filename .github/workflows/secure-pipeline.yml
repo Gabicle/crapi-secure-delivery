@@ -26,7 +26,12 @@ jobs:
 
       - name: Run Gitleaks (current-state scan)
         run: |
-          gitleaks dir app --report-format json --report-path gitleaks-report.json
+          gitleaks dir app --report-format json --report-path gitleaks-report.json --exit-code 0
+
+      - name: Check findings against policy
+        run: |
+          pip install pyyaml
+          python3 security/scripts/check_suppressions.py
 
       - name: Upload Gitleaks report
         if: always()
