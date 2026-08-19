@@ -106,10 +106,37 @@ def adapt_trivy(report_path):
     return findings
 
 
+def adapt_checkov(report_path):
+    with open(report_path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    # NOTE: Checkov's OSS/free-tier CLI does not populate `severity` at all
+    # (always returns None) — real severity data requires a Bridgecrew/
+    # Prisma Cloud platform account, which this project doesn't have. Same
+    # class of limitation as Semgrep's paid-only fingerprint. Because of
+    # this, policy.yml's `iac` policy uses block: any rather than
+    # severity tiers — there's no real severity data here to tier on.
+    findings = []
+    for block in data if isinstance(data, list) else [data]:
+        if block.get("check_type") == "secrets":
+            continue  # overlaps with Gitleaks/Trivy/Semgrep secret detection
+
+        for c in block.get("results", {}).get("failed_checks", []):
+            findings.append(
+                {
+                    "id": f"{c.get('file_path')}:{c.get('check_id')}:{c.get('resource')}",
+                    "severity": c.get("severity"),
+                    "description": c.get("check_name", ""),
+                }
+            )
+    return findings
+
+
 ADAPTERS = {
     "secrets": adapt_gitleaks,
     "sast": adapt_semgrep,
     "sca": adapt_trivy,
+    "iac": adapt_checkov,
 }
 
 
