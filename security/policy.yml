@@ -9,6 +9,12 @@ policies:
     block: [ERROR]
     warn: [WARNING]
     log: [INFO]
+    ignore_paths:
+      ["app/"] # vendored third-party code (crAPI). Scanned for
+      # visibility, not gated. Findings here are reported, never blocking.
+      # Real-looking vulnerabilities found here go into
+      # research/candidates.md for manual verification
+      # instead of being suppressed or blocked.
 
   sca:
     block: [CRITICAL, HIGH]
