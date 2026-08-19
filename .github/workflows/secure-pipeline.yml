@@ -131,7 +131,7 @@ jobs:
       - name: Run Checkov
         run: |
           docker run --rm -v "${{ github.workspace }}:/repo" bridgecrew/checkov:latest \
-            -d /repo/app --output json --output-file-path /repo/checkov-report
+            -d /repo/app --output json --output-file-path /repo/checkov-report --soft-fail
 
       - name: Check findings against policy
         run: |
