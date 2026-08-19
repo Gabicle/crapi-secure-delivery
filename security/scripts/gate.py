@@ -25,7 +25,7 @@ POLICY_PATH = "security/policy.yml"
 
 
 def load_policy(path=POLICY_PATH):
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -39,7 +39,7 @@ def suppressed_ids(policy):
 
 def adapt_gitleaks(report_path):
     try:
-        with open(report_path) as f:
+        with open(report_path, encoding="utf-8") as f:
             findings = json.load(f)
     except FileNotFoundError:
         # Gitleaks doesn't write a report file when it finds nothing
@@ -56,7 +56,7 @@ def adapt_gitleaks(report_path):
 
 
 def adapt_semgrep(report_path):
-    with open(report_path) as f:
+    with open(report_path, encoding="utf-8") as f:
         data = json.load(f)
 
     findings = []
@@ -82,9 +82,34 @@ def adapt_semgrep(report_path):
     return findings
 
 
+def adapt_trivy(report_path):
+    with open(report_path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    findings = []
+    for result in data.get("Results", []):
+        if result.get("Class") != "lang-pkgs":
+            continue  # skip Trivy's own secret-scan results — Gitleaks
+                      # already owns the secrets stage; including these
+                      # here would duplicate that gate under a third
+                      # tool's ID namespace instead of adding real coverage.
+
+        target = result.get("Target", "")
+        for v in result.get("Vulnerabilities", []) or []:
+            findings.append(
+                {
+                    "id": f"{target}:{v['VulnerabilityID']}:{v['PkgName']}",
+                    "severity": v.get("Severity"),
+                    "description": v.get("Title", ""),
+                }
+            )
+    return findings
+
+
 ADAPTERS = {
     "secrets": adapt_gitleaks,
     "sast": adapt_semgrep,
+    "sca": adapt_trivy,
 }
 
 
