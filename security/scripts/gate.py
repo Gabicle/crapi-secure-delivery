@@ -18,6 +18,7 @@ adding it to ADAPTERS. evaluate() should never need to change.
 """
 
 import json
+import os
 import sys
 import yaml
 
@@ -203,6 +204,20 @@ def main():
     print(f"[{tool_key}] Total findings: {len(findings)}")
     print(f"[{tool_key}] Not blocking (suppressed, ignored path, or below threshold): {len(findings) - len(blocking)}")
     print(f"[{tool_key}] Blocking (unreviewed or over threshold): {len(blocking)}")
+
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary_path:
+        with open(summary_path, "a", encoding="utf-8") as f:
+            f.write(f"## {tool_key} gate results\n\n")
+            f.write("| Metric | Count |\n|---|---|\n")
+            f.write(f"| Total findings | {len(findings)} |\n")
+            f.write(f"| Not blocking | {len(findings) - len(blocking)} |\n")
+            f.write(f"| **Blocking** | **{len(blocking)}** |\n\n")
+            if blocking:
+                f.write("### Blocking findings\n\n")
+                for finding in blocking:
+                    sev = f"`{finding['severity']}` " if finding["severity"] else ""
+                    f.write(f"- {sev}`{finding['id']}` — {finding['description']}\n")
 
     if blocking:
         print(f"\nThe following {tool_key} findings are blocking the build:\n")
