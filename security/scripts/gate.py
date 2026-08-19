@@ -132,11 +132,31 @@ def adapt_checkov(report_path):
     return findings
 
 
+def adapt_zap(report_path):
+    with open(report_path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    findings = []
+    for site in data.get("site", []):
+        host = site.get("@name", "")
+        for alert in site.get("alerts", []):
+            risk = alert.get("riskdesc", "").split(" ")[0]  # "Medium (High)" -> "Medium"
+            findings.append(
+                {
+                    "id": f"{host}:{alert.get('name')}",
+                    "severity": risk,
+                    "description": alert.get("name", ""),
+                }
+            )
+    return findings
+
+
 ADAPTERS = {
     "secrets": adapt_gitleaks,
     "sast": adapt_semgrep,
     "sca": adapt_trivy,
     "iac": adapt_checkov,
+    "dast": adapt_zap,
 }
 
 
