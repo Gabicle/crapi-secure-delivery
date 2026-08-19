@@ -107,8 +107,42 @@ suppressions:
     owner: "Gabicle"
     expires: "2027-08-18"
 
-# NOTE: The 4 JWT findings in app/postman_collections/crAPI.postman_collection.json
-# (fingerprints jwt:1197, jwt:1841, jwt:2023, jwt:2128) are intentionally NOT
-# suppressed here. They are a different finding type (example bearer tokens in
-# a Postman collection, not TLS key material) and have not yet been triaged.
-# They remain blocking under the `secrets: block: any` policy until reviewed.
+  - id: "app/postman_collections/crAPI.postman_collection.json:jwt:1197"
+    tool: "gitleaks"
+    reason: >
+      Decoded JWT payload confirms exp claim of 1608117499 (Dec 16, 2020),
+      expired ~5.5 years ago. Subject is "monster@darkweb.com", crAPI's
+      fictional demo/challenge persona, not a real account. Assumes
+      standard exp validation is enforced by the app; flagged in research/
+      as a candidate manual test to confirm expired-token rejection
+      actually works (business-logic verification, not covered by this
+      suppression). Shorter review cycle than cert suppressions given
+      this inertness depends on app behavior, not just token properties.
+    owner: "Gabicle"
+    expires: "2027-02-18"
+
+  - id: "app/postman_collections/crAPI.postman_collection.json:jwt:1841"
+    tool: "gitleaks"
+    reason: >
+      Same token as jwt:2023 and jwt:2128 (identical signature, repeated
+      in the file). Decoded exp claim: 1608630224 (Dec 22, 2020), expired
+      ~5.5 years ago. Subject "monster@darkweb.com", crAPI's fictional
+      demo persona. See jwt:1197 suppression for full reasoning.
+    owner: "Gabicle"
+    expires: "2027-02-18"
+
+  - id: "app/postman_collections/crAPI.postman_collection.json:jwt:2023"
+    tool: "gitleaks"
+    reason: >
+      Duplicate of jwt:1841 (same token, appears again in this file).
+      See jwt:1841 suppression for full reasoning.
+    owner: "Gabicle"
+    expires: "2027-02-18"
+
+  - id: "app/postman_collections/crAPI.postman_collection.json:jwt:2128"
+    tool: "gitleaks"
+    reason: >
+      Duplicate of jwt:1841 (same token, appears again in this file).
+      See jwt:1841 suppression for full reasoning.
+    owner: "Gabicle"
+    expires: "2027-02-18"
