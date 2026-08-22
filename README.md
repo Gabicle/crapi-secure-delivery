@@ -73,7 +73,7 @@ so far, spanning distinct vulnerability classes:
 | ID                               | Vulnerability                             | CVSS 3.1     | Risk Rating |
 | -------------------------------- | ----------------------------------------- | ------------ | ----------- |
 | [FIND-001](research/FIND-001.md) | BOLA: vehicle location disclosure         | 6.5 (Medium) | High        |
-| [FIND-002](research/FIND-002.md) | SSRF: token leak + internal network pivot | ~8.6 (High)  | Critical    |
+| [FIND-002](research/FIND-002.md) | SSRF: token leak + internal network pivot | 7.7 (High)   | Critical    |
 | [FIND-003](research/FIND-003.md) | BFLA+BOLA: cross-user video deletion      | 6.5 (Medium) | High        |
 | [FIND-004](research/FIND-004.md) | BOPLA: PII + vehicleId exposure in posts  | 6.5 (Medium) | High        |
 
