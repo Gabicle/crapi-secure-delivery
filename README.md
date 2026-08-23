@@ -67,26 +67,40 @@ flowchart LR
 | Checkov   | IaC     | 454 (informational, vendored infra) |
 | OWASP ZAP | DAST    | 37                                  |
 
-**Manual vulnerability research, in progress.** Seven confirmed findings
+**Manual vulnerability research, in progress.** Ten confirmed findings
 so far, spanning distinct vulnerability classes:
 
-| ID                               | Vulnerability                                                 | CVSS 3.1     | Risk Rating |
-| -------------------------------- | ------------------------------------------------------------- | ------------ | ----------- |
-| [FIND-001](research/FIND-001.md) | BOLA: vehicle location disclosure                             | 6.5 (Medium) | High        |
-| [FIND-002](research/FIND-002.md) | SSRF: token leak + internal network pivot                     | 7.7 (High)   | Critical    |
-| [FIND-003](research/FIND-003.md) | BFLA+BOLA: cross-user video deletion                          | 6.5 (Medium) | High        |
-| [FIND-004](research/FIND-004.md) | BOPLA: PII + vehicleId exposure in posts                      | 6.5 (Medium) | High        |
-| [FIND-005](research/FIND-005.md) | BFLA + missing input validation: unrestricted coupon creation | 6.5 (Medium) | High        |
-| [FIND-006](research/FIND-006.md) | User enumeration via signup, no rate limiting                 | 5.3 (Medium) | High        |
-| [FIND-007](research/FIND-007.md) | Login enumeration + missing rate limiting (brute-force)       | 5.3 (Medium) | Critical    |
+| ID                               | Vulnerability                                                          | CVSS 3.1       | Risk Rating |
+| -------------------------------- | ---------------------------------------------------------------------- | -------------- | ----------- |
+| [FIND-001](research/FIND-001.md) | BOLA: vehicle location disclosure                                      | 6.5 (Medium)   | High        |
+| [FIND-002](research/FIND-002.md) | SSRF: token leak + internal network pivot                              | 7.7 (High)     | Critical    |
+| [FIND-003](research/FIND-003.md) | BFLA+BOLA: cross-user video deletion                                   | 6.5 (Medium)   | High        |
+| [FIND-004](research/FIND-004.md) | BOPLA: PII + vehicleId exposure in posts                               | 6.5 (Medium)   | High        |
+| [FIND-005](research/FIND-005.md) | BFLA + missing input validation: unrestricted coupon creation          | 6.5 (Medium)   | High        |
+| [FIND-006](research/FIND-006.md) | User enumeration via signup, no rate limiting                          | 5.3 (Medium)   | High        |
+| [FIND-007](research/FIND-007.md) | Login enumeration + missing rate limiting (brute-force)                | 5.3 (Medium)   | Critical    |
+| [FIND-008](research/FIND-008.md) | Forget-password enumeration, third instance of the pattern             | 5.3 (Medium)   | High        |
+| [FIND-009](research/FIND-009.md) | Full account takeover via unthrottled legacy OTP endpoint              | 9.1 (Critical) | Critical    |
+| [FIND-010](research/FIND-010.md) | Unhandled exception disclosure on check-otp, fourth enumeration oracle | 5.3 (Medium)   | High        |
+
+**FIND-009 is the standout result**: a complete, end-to-end account
+takeover, not a theoretical path to one. A legacy API version
+(`/v2/check-otp`) left live alongside its correctly-secured replacement
+(`/v3/check-otp`) has no lockout on OTP guessing. The full chain, trigger
+a password reset, brute-force the 4-digit OTP (confirmed via a real
+10,000-value sweep, match found after 4,612 attempts), set a new
+password, and log in as the victim, was carried out against a real test
+account, with a valid session token as final proof.
 
 FIND-004 chains directly into FIND-001. The vehicleId it leaks can be fed
 straight into FIND-001's BOLA bug to pull a target's live location,
 demonstrating that individually-scored findings can combine into a more
 severe real-world attack path, documented explicitly in FIND-004's
-writeup rather than left implicit. FIND-006 and FIND-007 are two
-independent enumeration oracles for the same underlying account data,
-confirming the same weakness exists on more than one endpoint.
+writeup rather than left implicit. FIND-006, FIND-007, FIND-008, and
+FIND-010 are four independent enumeration oracles for the same
+underlying account data, confirming the same weakness exists across
+signup, login, forget-password, and OTP verification alike, a systemic
+gap rather than four unrelated bugs.
 
 Every finding includes full reproduction steps, request/response
 evidence, CVSS scoring, CWE mapping, and an OWASP Risk Rating
