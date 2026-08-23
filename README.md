@@ -67,21 +67,26 @@ flowchart LR
 | Checkov   | IaC     | 454 (informational, vendored infra) |
 | OWASP ZAP | DAST    | 37                                  |
 
-**Manual vulnerability research, in progress.** Four confirmed findings
+**Manual vulnerability research, in progress.** Seven confirmed findings
 so far, spanning distinct vulnerability classes:
 
-| ID                               | Vulnerability                             | CVSS 3.1     | Risk Rating |
-| -------------------------------- | ----------------------------------------- | ------------ | ----------- |
-| [FIND-001](research/FIND-001.md) | BOLA: vehicle location disclosure         | 6.5 (Medium) | High        |
-| [FIND-002](research/FIND-002.md) | SSRF: token leak + internal network pivot | 7.7 (High)   | Critical    |
-| [FIND-003](research/FIND-003.md) | BFLA+BOLA: cross-user video deletion      | 6.5 (Medium) | High        |
-| [FIND-004](research/FIND-004.md) | BOPLA: PII + vehicleId exposure in posts  | 6.5 (Medium) | High        |
+| ID                               | Vulnerability                                                 | CVSS 3.1     | Risk Rating |
+| -------------------------------- | ------------------------------------------------------------- | ------------ | ----------- |
+| [FIND-001](research/FIND-001.md) | BOLA: vehicle location disclosure                             | 6.5 (Medium) | High        |
+| [FIND-002](research/FIND-002.md) | SSRF: token leak + internal network pivot                     | 7.7 (High)   | Critical    |
+| [FIND-003](research/FIND-003.md) | BFLA+BOLA: cross-user video deletion                          | 6.5 (Medium) | High        |
+| [FIND-004](research/FIND-004.md) | BOPLA: PII + vehicleId exposure in posts                      | 6.5 (Medium) | High        |
+| [FIND-005](research/FIND-005.md) | BFLA + missing input validation: unrestricted coupon creation | 6.5 (Medium) | High        |
+| [FIND-006](research/FIND-006.md) | User enumeration via signup, no rate limiting                 | 5.3 (Medium) | High        |
+| [FIND-007](research/FIND-007.md) | Login enumeration + missing rate limiting (brute-force)       | 5.3 (Medium) | Critical    |
 
 FIND-004 chains directly into FIND-001. The vehicleId it leaks can be fed
 straight into FIND-001's BOLA bug to pull a target's live location,
 demonstrating that individually-scored findings can combine into a more
 severe real-world attack path, documented explicitly in FIND-004's
-writeup rather than left implicit.
+writeup rather than left implicit. FIND-006 and FIND-007 are two
+independent enumeration oracles for the same underlying account data,
+confirming the same weakness exists on more than one endpoint.
 
 Every finding includes full reproduction steps, request/response
 evidence, CVSS scoring, CWE mapping, and an OWASP Risk Rating
@@ -91,8 +96,8 @@ used.
 
 ## What's next
 
-- [ ] Additional findings (JWT forgery and SQL injection candidates
-      already flagged by automated tooling in `research/candidates.md`)
+- [ ] Continued route-by-route testing, working through the full API
+      surface systematically (tracked in `research/candidates.md`)
 - [ ] Remediation: real code fixes + before/after verification per finding
 - [ ] Detection feedback loop: a custom rule per finding, wired into the
       pipeline, proven to catch regressions via revert testing
